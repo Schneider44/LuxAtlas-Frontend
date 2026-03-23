@@ -3,7 +3,6 @@
   "outputDirectory": ".",
   "routes": [
     { "src": "/concierge", "dest": "/concierge.html" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/", "dest": "/index.html" }
   ]
 }
