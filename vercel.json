@@ -1,8 +1,14 @@
 {
-  "buildCommand": null,
-  "outputDirectory": ".",
+  "version": 2,
+  "builds": [
+    { "src": "api/booking.js", "use": "@vercel/node" },
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "*.png", "use": "@vercel/static" }
+  ],
   "routes": [
+    { "src": "/api/booking", "dest": "/api/booking.js" },
     { "src": "/concierge", "dest": "/concierge.html" },
-    { "src": "/", "dest": "/index.html" }
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
