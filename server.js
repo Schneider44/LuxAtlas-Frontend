@@ -120,5 +120,5 @@ app.get('*', (req, res) => {
 
 // ── Start ──────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n  LuxAtlas server running → http://localhost:${PORT}\n`);
+  console.log(`\n  LuxAtlas server running → https://lux-atlas-frontend.vercel.app/\n`);
 });
