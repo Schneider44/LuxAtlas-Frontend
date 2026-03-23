@@ -1,12 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/booking.js", "use": "@vercel/node" }
-  ],
   "routes": [
-    { "src": "/api/booking", "dest": "/api/booking.js" },
-    { "src": "/concierge", "dest": "/concierge.html" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/concierge", "dest": "/concierge.html" }
   ]
 }
