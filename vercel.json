@@ -1,5 +1,9 @@
 {
+  "buildCommand": null,
+  "outputDirectory": ".",
   "routes": [
-    { "src": "/concierge", "dest": "/concierge.html" }
+    { "src": "/concierge", "dest": "/concierge.html" },
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
