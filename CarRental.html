@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LuxAtlas — Luxury Car Rental</title>
+  <meta name="description" content="Rent the world's most exclusive vehicles with white-glove door-to-door delivery across Morocco." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { gold: '#d4af37', 'gold-light': '#e8c84a' },
+          fontFamily: {
+            playfair: ['"Playfair Display"', 'serif'],
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #0a0a0a; color: #e8e0d0; font-family: 'Inter', sans-serif; }
+
+    .font-playfair { font-family: 'Playfair Display', serif; }
+
+    /* Gold gradient text */
+    .gold-text {
+      background: linear-gradient(135deg, #d4af37 0%, #f5d76e 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Gold circle icon */
+    .gold-circle {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #d4af37, #f5d76e);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Vehicle card */
+    .vehicle-card {
+      background: #1a1a1a;
+      border: 1px solid rgba(212,175,55,.18);
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: border-color .3s;
+    }
+    .vehicle-card:hover { border-color: rgba(212,175,55,.7); }
+    .vehicle-card .car-img {
+      width: 100%; height: 200px; object-fit: cover;
+      transition: transform .5s ease;
+    }
+    .vehicle-card:hover .car-img { transform: scale(1.07); }
+
+    /* Book button */
+    .book-btn {
+      width: 100%; padding: 10px;
+      border: 1px solid #d4af37;
+      background: transparent;
+      color: #d4af37;
+      font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 500;
+      border-radius: 2px; cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .book-btn:hover { background: #d4af37; color: #000; }
+
+    /* Form inputs */
+    .f-input {
+      width: 100%; background: #000;
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 2px;
+      padding: 12px 16px;
+      font-size: .875rem; color: #e8e0d0;
+      outline: none; transition: border-color .2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .f-input::placeholder { color: rgba(232,224,208,.3); }
+    .f-input:focus { border-color: #d4af37; }
+    .f-input.error { border-color: rgba(220,80,80,.6); }
+    .f-input option { background: #1a1a1a; }
+
+    /* Service card */
+    .svc-card {
+      background: #111;
+      border: 1px solid rgba(212,175,55,.15);
+      border-radius: 2px;
+      padding: 28px 20px;
+      text-align: center;
+      transition: border-color .25s;
+    }
+    .svc-card:hover { border-color: rgba(212,175,55,.4); }
+
+    /* Contact links */
+    .contact-link { display: flex; align-items: center; gap: 12px; color: rgba(232,224,208,.6); text-decoration: none; transition: color .2s; }
+    .contact-link:hover { color: #fff; }
+    .contact-link svg { color: #d4af37; transition: color .2s; }
+    .contact-link:hover svg { color: #f5d76e; }
+
+    /* Gold submit */
+    .submit-btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #d4af37, #f5d76e);
+      color: #000; font-weight: 600;
+      font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
+      border: none; border-radius: 2px; cursor: pointer;
+      transition: opacity .2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .submit-btn:hover { opacity: .88; }
+
+    /* Reveal animation */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .rd1 { transition-delay: .05s; } .rd2 { transition-delay: .15s; } .rd3 { transition-delay: .25s; }
+    .rd4 { transition-delay: .08s; } .rd5 { transition-delay: .16s; } .rd6 { transition-delay: .24s; }
+
+    /* Error text */
+    .err-txt { color: rgba(220,80,80,.85); font-size: .72rem; margin-top: 4px; display: none; }
+    .err-txt.show { display: block; }
+
+    /* Header */
+    #header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: background .3s, backdrop-filter .3s; }
+    #header.scrolled { background: rgba(10,10,10,.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(212,175,55,.12); }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header id="header" class="w-full py-4 px-5 md:px-10">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <a href="index.html" class="flex-shrink-0">
+      <div class="flex flex-col leading-none">
+        <span class="font-playfair text-xl md:text-2xl font-bold gold-text tracking-wider">LuxAtlas</span>
+        <span class="text-xs tracking-widest uppercase font-light" style="color:rgba(212,175,55,.55);letter-spacing:.25em;">Car Rental</span>
+      </div>
+    </a>
+    <nav class="hidden md:flex items-center gap-8">
+      <a href="#fleet"   class="text-xs tracking-widest uppercase font-light transition-colors hover:text-gold" style="color:rgba(232,224,208,.6);">Fleet</a>
+      <a href="#booking" class="text-xs tracking-widest uppercase font-light transition-colors hover:text-gold" style="color:rgba(232,224,208,.6);">Book</a>
+      <a href="#services"class="text-xs tracking-widest uppercase font-light transition-colors hover:text-gold" style="color:rgba(232,224,208,.6);">Services</a>
+      <a href="#contact" class="text-xs tracking-widest uppercase font-light transition-colors hover:text-gold" style="color:rgba(232,224,208,.6);">Contact</a>
+    </nav>
+    <a href="#booking"
+       class="hidden md:flex items-center gap-2 px-6 py-2.5 text-xs tracking-widest uppercase font-medium transition-colors"
+       style="border:1px solid #d4af37;color:#d4af37;border-radius:2px;"
+       onmouseover="this.style.background='#d4af37';this.style.color='#000'"
+       onmouseout="this.style.background='transparent';this.style.color='#d4af37'">
+      Book Now
+    </a>
+  </div>
+</header>
+
+<!-- ── Hero ────────────────────────────────────────────────────────────── -->
+<section class="relative flex items-center justify-center text-center overflow-hidden" style="min-height:70vh;">
+  <div class="absolute inset-0"
+       style="background-image:url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1600&q=80');
+              background-size:cover;background-position:center;opacity:.22;"></div>
+  <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(10,10,10,.7) 0%,rgba(10,10,10,.3) 50%,rgba(10,10,10,.95) 100%);"></div>
+
+  <div class="relative z-10 px-6 pt-24 pb-16">
+    <!-- Icon -->
+    <div class="flex justify-center mb-6">
+      <div class="gold-circle">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l4 4 3 2v4h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+        </svg>
+      </div>
+    </div>
+    <div class="text-xs tracking-widest uppercase mb-4" style="color:rgba(212,175,55,.5);">Premium Luxury Collection</div>
+    <h1 class="font-playfair text-5xl md:text-7xl font-bold gold-text mb-5" style="line-height:1.08;">Luxury Car Rental</h1>
+    <p class="text-base md:text-lg max-w-xl mx-auto font-light" style="color:rgba(232,224,208,.6);line-height:1.75;">
+      White-glove delivery to your door. Every vehicle meticulously prepared.<br class="hidden md:block"> Every journey an occasion.
+    </p>
+    <div class="flex flex-col sm:flex-row justify-center gap-4 mt-10">
+      <a href="#fleet"
+         class="px-10 py-3.5 text-xs tracking-widest uppercase font-medium transition-colors"
+         style="background:#d4af37;color:#000;border-radius:2px;"
+         onmouseover="this.style.background='#e8c84a'" onmouseout="this.style.background='#d4af37'">
+        View Fleet
+      </a>
+      <a href="#booking"
+         class="px-10 py-3.5 text-xs tracking-widest uppercase font-medium transition-colors"
+         style="border:1px solid rgba(212,175,55,.5);color:#d4af37;border-radius:2px;"
+         onmouseover="this.style.borderColor='#d4af37'" onmouseout="this.style.borderColor='rgba(212,175,55,.5)'">
+        Reserve Now
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Bar ────────────────────────────────────────────────────────── -->
+<div style="background:#111;border-top:1px solid rgba(212,175,55,.1);border-bottom:1px solid rgba(212,175,55,.1);">
+  <div class="max-w-4xl mx-auto py-6 px-6 grid grid-cols-3 gap-4 text-center">
+    <div><p class="font-playfair text-2xl font-bold gold-text">18+</p><p class="text-xs tracking-widest uppercase mt-1" style="color:rgba(232,224,208,.4);">Exotic Vehicles</p></div>
+    <div style="border-left:1px solid rgba(212,175,55,.15);border-right:1px solid rgba(212,175,55,.15);">
+      <p class="font-playfair text-2xl font-bold gold-text">24/7</p><p class="text-xs tracking-widest uppercase mt-1" style="color:rgba(232,224,208,.4);">Concierge Support</p>
+    </div>
+    <div><p class="font-playfair text-2xl font-bold gold-text">500+</p><p class="text-xs tracking-widest uppercase mt-1" style="color:rgba(232,224,208,.4);">Happy Clients</p></div>
+  </div>
+</div>
+
+<!-- ── Benefits ─────────────────────────────────────────────────────────── -->
+<section class="py-20 px-6" style="background:#0a0a0a;">
+  <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+
+    <div class="text-center reveal rd1">
+      <div class="flex justify-center mb-5">
+        <div class="gold-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+      </div>
+      <h3 class="font-playfair text-lg font-semibold mb-3" style="color:#d4af37;">Door-to-Door Delivery</h3>
+      <p class="text-sm font-light leading-relaxed" style="color:rgba(232,224,208,.55);">Your vehicle arrives wherever you are — hotel, villa, or airport — at the exact time you need it.</p>
+    </div>
+
+    <div class="text-center reveal rd2">
+      <div class="flex justify-center mb-5">
+        <div class="gold-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+      </div>
+      <h3 class="font-playfair text-lg font-semibold mb-3" style="color:#d4af37;">Comprehensive Insurance</h3>
+      <p class="text-sm font-light leading-relaxed" style="color:rgba(232,224,208,.55);">Every rental includes full coverage so you can focus entirely on the experience, not the paperwork.</p>
+    </div>
+
+    <div class="text-center reveal rd3">
+      <div class="flex justify-center mb-5">
+        <div class="gold-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l4 4 3 2v4h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+          </svg>
+        </div>
+      </div>
+      <h3 class="font-playfair text-lg font-semibold mb-3" style="color:#d4af37;">Exotic Fleet</h3>
+      <p class="text-sm font-light leading-relaxed" style="color:rgba(232,224,208,.55);">From Phantom to Huracán, our curated collection represents the pinnacle of automotive excellence.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Vehicle Grid ──────────────────────────────────────────────────────── -->
+<section id="fleet" class="py-20 px-6" style="background:#111;">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <p class="text-xs tracking-widest uppercase mb-3" style="color:rgba(212,175,55,.5);">Our Collection</p>
+      <h2 class="font-playfair text-4xl md:text-5xl font-bold gold-text">Featured Vehicles</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="vehicle-grid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ── Rental Request Form ───────────────────────────────────────────────── -->
+<section id="booking" class="py-20 px-6" style="background:#0a0a0a;">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-12 reveal">
+      <p class="text-xs tracking-widest uppercase mb-3" style="color:rgba(212,175,55,.5);">Reserve Your Vehicle</p>
+      <h2 class="font-playfair text-4xl font-bold gold-text">Rental Request</h2>
+    </div>
+
+    <form id="rental-form" novalidate class="space-y-5">
+      <!-- Row 1: Name + Email -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <input id="f-name"  class="f-input" type="text"  placeholder="Full Name" />
+          <p id="e-name"  class="err-txt">Full name is required.</p>
+        </div>
+        <div>
+          <input id="f-email" class="f-input" type="email" placeholder="Email Address" />
+          <p id="e-email" class="err-txt">Valid email address required.</p>
+        </div>
+      </div>
+
+      <!-- Row 2: Phone + Vehicle type -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <input id="f-phone" class="f-input" type="tel" placeholder="Phone Number" />
+          <p id="e-phone" class="err-txt">Phone number is required.</p>
+        </div>
+        <div>
+          <select id="f-type" class="f-input">
+            <option value="">Select Vehicle Type</option>
+            <option>Ultra Luxury Sedan</option>
+            <option>Exotic Supercar</option>
+            <option>Luxury Grand Tourer</option>
+            <option>Luxury SUV</option>
+            <option>Sports Car</option>
+            <option>Luxury Convertible</option>
+            <option>Luxury Electric</option>
+          </select>
+          <p id="e-type" class="err-txt">Please select a vehicle type.</p>
+        </div>
+      </div>
+
+      <!-- Pickup row -->
+      <div>
+        <p class="text-xs tracking-widest uppercase mb-3" style="color:rgba(212,175,55,.45);">Pickup Details</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <input id="f-pickup-date" class="f-input" type="date" />
+            <p id="e-pickup-date" class="err-txt">Pickup date is required.</p>
+          </div>
+          <div><input id="f-pickup-time" class="f-input" type="time" /></div>
+          <div>
+            <input id="f-pickup-loc" class="f-input" type="text" placeholder="Pickup Location" />
+            <p id="e-pickup-loc" class="err-txt">Pickup location is required.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Return row -->
+      <div>
+        <p class="text-xs tracking-widest uppercase mb-3" style="color:rgba(212,175,55,.45);">Return Details</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <input id="f-return-date" class="f-input" type="date" />
+            <p id="e-return-date" class="err-txt">Return date is required.</p>
+          </div>
+          <div><input id="f-return-time" class="f-input" type="time" /></div>
+          <div>
+            <input id="f-return-loc" class="f-input" type="text" placeholder="Return Location" />
+            <p id="e-return-loc" class="err-txt">Return location is required.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Occasion -->
+      <select id="f-occasion" class="f-input">
+        <option value="">Special Occasion (optional)</option>
+        <option>Wedding</option>
+        <option>Anniversary</option>
+        <option>Birthday</option>
+        <option>Corporate Event</option>
+        <option>Airport Transfer</option>
+        <option>Leisure / Holiday</option>
+        <option>Other</option>
+      </select>
+
+      <!-- Notes -->
+      <textarea id="f-notes" class="f-input" rows="4" placeholder="Special requests or additional notes…" style="resize:none;"></textarea>
+
+      <button type="submit" class="submit-btn">
+        Send Rental Request via WhatsApp
+      </button>
+      <p class="text-xs text-center" style="color:rgba(232,224,208,.3);">You'll be redirected to WhatsApp to confirm your request.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ── Additional Services ───────────────────────────────────────────────── -->
+<section id="services" class="py-20 px-6" style="background:#111;">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <p class="text-xs tracking-widest uppercase mb-3" style="color:rgba(212,175,55,.5);">Included & Optional</p>
+      <h2 class="font-playfair text-4xl font-bold gold-text">Additional Services</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <div class="svc-card reveal rd1">
+        <div class="flex justify-center mb-4" style="color:#d4af37;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+          </svg>
+        </div>
+        <h3 class="text-sm tracking-wide uppercase font-medium mb-2" style="color:#d4af37;">Chauffeur Service</h3>
+        <p class="text-xs font-light leading-relaxed" style="color:rgba(232,224,208,.5);">Professional drivers available around the clock for any journey.</p>
+      </div>
+
+      <div class="svc-card reveal rd2">
+        <div class="flex justify-center mb-4" style="color:#d4af37;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+        </div>
+        <h3 class="text-sm tracking-wide uppercase font-medium mb-2" style="color:#d4af37;">GPS & Navigation</h3>
+        <p class="text-xs font-light leading-relaxed" style="color:rgba(232,224,208,.5);">Latest navigation systems pre-loaded with premium destinations.</p>
+      </div>
+
+      <div class="svc-card reveal rd3">
+        <div class="flex justify-center mb-4" style="color:#d4af37;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3 class="text-sm tracking-wide uppercase font-medium mb-2" style="color:#d4af37;">Full Coverage</h3>
+        <p class="text-xs font-light leading-relaxed" style="color:rgba(232,224,208,.5);">Comprehensive insurance with zero excess for total peace of mind.</p>
+      </div>
+
+      <div class="svc-card reveal rd4">
+        <div class="flex justify-center mb-4" style="color:#d4af37;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <h3 class="text-sm tracking-wide uppercase font-medium mb-2" style="color:#d4af37;">24/7 Support</h3>
+        <p class="text-xs font-light leading-relaxed" style="color:rgba(232,224,208,.5);">Dedicated concierge team on call every hour of every day.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Contact ───────────────────────────────────────────────────────────── -->
+<section id="contact" class="py-20 px-6 text-center" style="background:#0a0a0a;border-top:1px solid rgba(212,175,55,.1);">
+  <p class="text-xs tracking-widest uppercase mb-4" style="color:rgba(212,175,55,.5);">Get In Touch</p>
+  <h2 class="font-playfair text-3xl md:text-4xl font-bold gold-text mb-10">Contact Our Fleet Team</h2>
+  <div class="flex flex-col sm:flex-row justify-center items-center gap-8">
+    <a href="tel:+212600123456" class="contact-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.43 2 2 0 0 1 3.62 1.24l3-.07a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.38-1.38a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
+      </svg>
+      <span class="text-sm tracking-wide">+212 600 123 456</span>
+    </a>
+    <a href="mailto:fleet@luxatlas.com" class="contact-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+      </svg>
+      <span class="text-sm tracking-wide">fleet@luxatlas.com</span>
+    </a>
+  </div>
+  <div class="mt-16 pt-8" style="border-top:1px solid rgba(212,175,55,.08);">
+    <a href="index.html" class="font-playfair text-lg font-bold gold-text tracking-wider">LuxAtlas</a>
+    <p class="text-xs mt-2 tracking-widest uppercase" style="color:rgba(232,224,208,.25);">Premium Luxury Collection</p>
+  </div>
+</section>
+
+<script>
+  const WHATSAPP = '212600123456';
+
+  // ── Vehicle data ──────────────────────────────────────────────────────────
+  const vehicles = [
+    { name:'Rolls-Royce Phantom',      cat:'Ultra Luxury Sedan',   price:1200, img:'https://images.unsplash.com/photo-1631295868223-63265b40d9e4?w=600&q=80' },
+    { name:'Lamborghini Huracán',       cat:'Exotic Supercar',       price:980,  img:'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80' },
+    { name:'Ferrari 812 Superfast',     cat:'Exotic Supercar',       price:1100, img:'https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=600&q=80' },
+    { name:'Bentley Continental GT',    cat:'Luxury Grand Tourer',   price:850,  img:'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=600&q=80' },
+    { name:'Mercedes-Maybach S-Class',  cat:'Ultra Luxury Sedan',    price:750,  img:'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80' },
+    { name:'Porsche 911 Turbo S',       cat:'Sports Car',            price:680,  img:'https://images.unsplash.com/photo-1611651338412-8403fa6e3599?w=600&q=80' },
+    { name:'Aston Martin DB11',         cat:'Luxury Grand Tourer',   price:790,  img:'https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=80' },
+    { name:'McLaren 720S',              cat:'Exotic Supercar',        price:920,  img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80' },
+    { name:'Range Rover Autobiography', cat:'Luxury SUV',             price:580,  img:'https://images.unsplash.com/photo-1519245659620-e859806a8d3b?w=600&q=80' },
+    { name:'BMW M8 Competition',        cat:'Luxury Sports Coupé',   price:520,  img:'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=600&q=80' },
+    { name:'Audi R8 V10',               cat:'Exotic Supercar',        price:760,  img:'https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=600&q=80' },
+    { name:'Mercedes-AMG GT',           cat:'Sports Car',             price:620,  img:'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80' },
+    { name:'Lamborghini Urus',          cat:'Luxury SUV',             price:840,  img:'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80' },
+    { name:'Bentley Bentayga',          cat:'Luxury SUV',             price:780,  img:'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=600&q=80' },
+    { name:'Ferrari Portofino',         cat:'Luxury Convertible',     price:890,  img:'https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=600&q=80' },
+    { name:'Maserati MC20',             cat:'Exotic Supercar',        price:850,  img:'https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=600&q=80' },
+    { name:'Porsche Taycan Turbo S',    cat:'Luxury Electric',        price:640,  img:'https://images.unsplash.com/photo-1611651338412-8403fa6e3599?w=600&q=80' },
+    { name:'Rolls-Royce Cullinan',      cat:'Ultra Luxury SUV',       price:1300, img:'https://images.unsplash.com/photo-1631295868223-63265b40d9e4?w=600&q=80' },
+  ];
+
+  // ── Render vehicle cards ──────────────────────────────────────────────────
+  const grid = document.getElementById('vehicle-grid');
+  const delays = ['rd4','rd5','rd6','rd4','rd5','rd6','rd4','rd5','rd6','rd4','rd5','rd6','rd4','rd5','rd6','rd4','rd5','rd6'];
+
+  vehicles.forEach((v, i) => {
+    const card = document.createElement('div');
+    card.className = `vehicle-card reveal ${delays[i % 3]}`;
+    card.innerHTML = `
+      <div style="overflow:hidden;">
+        <img class="car-img" src="${v.img}" alt="${v.name}" loading="lazy" />
+      </div>
+      <div class="p-5 flex flex-col flex-1">
+        <h3 class="font-playfair text-lg font-bold mb-1" style="color:#d4af37;">${v.name}</h3>
+        <p class="text-xs tracking-widest uppercase mb-4" style="color:rgba(232,224,208,.4);">${v.cat}</p>
+        <p class="text-sm font-light mb-5 mt-auto" style="color:rgba(232,224,208,.55);">
+          From <span style="color:#d4af37;font-weight:600;">$${v.price}</span>/day
+        </p>
+        <button class="book-btn" onclick="bookVehicle('${v.name.replace(/'/g,"\\'")}')">Book This Vehicle</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // ── Book vehicle via WhatsApp ─────────────────────────────────────────────
+  function bookVehicle(name) {
+    const msg = `Hello LuxAtlas, I'd like to book the ${name}. Please provide availability and pricing.`;
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  // ── Form validation & WhatsApp submit ─────────────────────────────────────
+  document.getElementById('rental-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const name       = document.getElementById('f-name');
+    const email      = document.getElementById('f-email');
+    const phone      = document.getElementById('f-phone');
+    const type       = document.getElementById('f-type');
+    const pickupDate = document.getElementById('f-pickup-date');
+    const returnDate = document.getElementById('f-return-date');
+    const pickupLoc  = document.getElementById('f-pickup-loc');
+    const returnLoc  = document.getElementById('f-return-loc');
+
+    // Clear errors
+    document.querySelectorAll('.f-input').forEach(el => el.classList.remove('error'));
+    document.querySelectorAll('.err-txt').forEach(el => el.classList.remove('show'));
+
+    let valid = true;
+    function flag(inputId, errId) {
+      document.getElementById(inputId).classList.add('error');
+      document.getElementById(errId).classList.add('show');
+      valid = false;
+    }
+
+    if (!name.value.trim())         flag('f-name',        'e-name');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) flag('f-email', 'e-email');
+    if (!phone.value.trim())        flag('f-phone',       'e-phone');
+    if (!type.value)                flag('f-type',        'e-type');
+    if (!pickupDate.value)          flag('f-pickup-date', 'e-pickup-date');
+    if (!returnDate.value)          flag('f-return-date', 'e-return-date');
+    if (!pickupLoc.value.trim())    flag('f-pickup-loc',  'e-pickup-loc');
+    if (!returnLoc.value.trim())    flag('f-return-loc',  'e-return-loc');
+
+    if (!valid) return;
+
+    const pickupTime = document.getElementById('f-pickup-time').value;
+    const returnTime = document.getElementById('f-return-time').value;
+    const occasion   = document.getElementById('f-occasion').value;
+    const notes      = document.getElementById('f-notes').value.trim();
+
+    const lines = [
+      `Hello LuxAtlas, I'd like to make a car rental request.`,
+      `Name: ${name.value.trim()}`,
+      `Email: ${email.value.trim()}`,
+      `Phone: ${phone.value.trim()}`,
+      `Vehicle Type: ${type.value}`,
+      `Pickup: ${pickupDate.value}${pickupTime ? ' at ' + pickupTime : ''} — ${pickupLoc.value.trim()}`,
+      `Return: ${returnDate.value}${returnTime ? ' at ' + returnTime : ''} — ${returnLoc.value.trim()}`,
+      occasion ? `Occasion: ${occasion}` : '',
+      notes    ? `Notes: ${notes}`       : '',
+    ].filter(Boolean).join('\n');
+
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(lines)}`, '_blank');
+  });
+
+  // ── Header scroll effect ──────────────────────────────────────────────────
+  window.addEventListener('scroll', () => {
+    document.getElementById('header').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // ── Reveal on scroll ──────────────────────────────────────────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); observer.unobserve(en.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
